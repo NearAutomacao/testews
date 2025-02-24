@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoramento de Silos</title>
+    <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .silo {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monitoramento de Silos</h1>
+        <div id="status" class="error">Conectando...</div>
+        <div class="silo">
+            <h2>Silo 1</h2>
+            <p>Nível: <span id="nivelSilo1" class="status">Aguardando dados...</span></p>
+            <p>Matrícula: <span id="matriculaSilo1" class="status">Aguardando dados...</span></p>
+        </div>
+        <div class="silo">
+            <h2>Silo 2</h2>
+            <p>Nível: <span id="nivelSilo2" class="status">Aguardando dados...</span></p>
+            <p>Matrícula: <span id="matriculaSilo2" class="status">Aguardando dados...</span></p>
+        </div>
+    </div>
+
+    <script>
+        const brokerUrl = 'ws://nearfish.ddns.net:1890';
+        const options = {
+            reconnectPeriod: 2000, // Tenta reconectar a cada 2 segundos
+            clientId: 'web_client_' + Math.random().toString(36).substr(2, 9)
+        };
+
+        const client = mqtt.connect(brokerUrl, options);
+
+        client.on('connect', () => {
+            document.getElementById('status').innerText = 'Conectado ao servidor';
+            document.getElementById('status').style.color = 'green';
+
+            // Inscreve-se nos tópicos
+            client.subscribe('SmartSilos/Aviario1/NivelSilo1/Matricula', (err) => {
+                if (err) console.error('Erro ao se inscrever no tópico NivelSilo1/Matricula:', err);
+            });
+            client.subscribe('SmartSilos/Aviario1/NivelSilo2/Matricula', (err) => {
+                if (err) console.error('Erro ao se inscrever no tópico NivelSilo2/Matricula:', err);
+            });
+            // Assumindo que os níveis podem vir em tópicos relacionados
+            client.subscribe('SmartSilos/Aviario1/NivelSilo1', (err) => {
+                if (err) console.error('Erro ao se inscrever no tópico NivelSilo1:', err);
+            });
+            client.subscribe('SmartSilos/Aviario1/NivelSilo2', (err) => {
+                if (err) console.error('Erro ao se inscrever no tópico NivelSilo2:', err);
+            });
+        });
+
+        client.on('message', (topic, message) => {
+            const value = message.toString(); // Converte o payload para string (valores numéricos)
+
+            if (topic === 'SmartSilos/Aviario1/NivelSilo1/Matricula') {
+                document.getElementById('matriculaSilo1').innerText = value;
+            } else if (topic === 'SmartSilos/Aviario1/NivelSilo2/Matricula') {
+                document.getElementById('matriculaSilo2').innerText = value;
+            } else if (topic === 'SmartSilos/Aviario1/NivelSilo1') {
+                document.getElementById('nivelSilo1').innerText = value;
+            } else if (topic === 'SmartSilos/Aviario1/NivelSilo2') {
+                document.getElementById('nivelSilo2').innerText = value;
+            }
+        });
+
+        client.on('error', (err) => {
+            document.getElementById('status').innerText = 'Erro na conexão';
+            console.error('Erro no MQTT:', err);
+        });
+
+        client.on('reconnect', () => {
+            document.getElementById('status').innerText = 'Reconectando...';
+            document.getElementById('status').style.color = 'orange';
+        });
+
+        client.on('close', () => {
+            document.getElementById('status').innerText = 'Desconectado';
+            document.getElementById('status').style.color = 'red';
+        });
+    </script>
+</body>
+</html>

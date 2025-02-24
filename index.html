@@ -56,8 +56,8 @@
     </div>
 
     <script>
-        // ATENÇÃO: Para funcionar no Netlify, use 'wss://'. 'ws://' será bloqueado!
-        const brokerUrl = 'wss://nearfish.ddns.net:1890'; // Substitua por um proxy WSS se necessário
+        // URL do proxy WSS que redireciona para ws://nearfish.ddns.net:1890
+        const brokerUrl = 'wss://seu-proxy.com:1891'; // Substitua pelo endereço real do seu proxy WSS
         const options = {
             reconnectPeriod: 2000,
             clientId: 'web_client_' + Math.random().toString(36).substr(2, 9)

@@ -399,7 +399,9 @@
             localStorage.setItem('siloPercentages', JSON.stringify(percentages));
 
             // Configuração do cliente MQTT
-            const brokerUrl = 'wss://nearfish.ddns.net:8883';
+            const brokerUrl = 'wss://mqtt.nearfish.ddns.net';
+
+           // const brokerUrl = 'wss://nearfish.ddns.net:8883';
             const options = {
                 reconnectPeriod: 2000,
                 clientId: 'web_client_' + Math.random().toString(36).substr(2, 9)
